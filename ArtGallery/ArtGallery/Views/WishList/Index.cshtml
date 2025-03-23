@@ -1,0 +1,29 @@
+﻿@model List<ArtGallery.Models.Wishlist.WishlistDTO>
+@{
+    ViewData["Title"] = "Index";
+}
+<h2>My Wish List</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Image</th>
+            <th>Product Name</th>
+            <th>Price</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td><img src="@item.Picture" width="50" /></td>
+                <td>@item.ProductName</td>
+                <td>@item.Price.ToString("C")</td>
+                <td>
+                    <a href="@Url.Action("Remove", "WishList", new { productId = item.ProductId })" class="btn btn-danger">Remove</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

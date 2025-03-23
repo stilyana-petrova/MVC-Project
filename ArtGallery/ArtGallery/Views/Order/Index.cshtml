@@ -1,0 +1,58 @@
+﻿@model IEnumerable<ArtGallery.Models.Order.OrderIndexVM>
+
+@{
+    ViewData["Title"] = "All Orders";
+}
+
+<h1>All Orders</h1>
+
+<table class="table text-dark">
+    <thead>
+        <tr>
+            <th>Order Date</th>
+            <th>@Html.DisplayNameFor(model => model.Product)</th>
+            <th>@Html.DisplayNameFor(model => model.Picture)</th>
+            <th>@Html.DisplayNameFor(model => model.Quantity)</th>
+            <th>@Html.DisplayNameFor(model => model.Price)</th>
+            <th>@Html.DisplayNameFor(model => model.Discount)</th>
+            <th>@Html.DisplayNameFor(model => model.TotalPrice)</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var groupedOrders = Model.GroupBy(o => o.OrderDate); 
+        }
+
+        @foreach (var orderGroup in groupedOrders)
+        {
+            <tr class="table-warning">
+                <td colspan="8">
+                    @orderGroup.First().OrderDate<br />
+                    User: @orderGroup.First().User
+                </td>
+            </tr>
+
+            foreach (var item in orderGroup)
+            {
+                <tr>
+                    <td></td>
+                    
+                    <td>@Html.DisplayFor(modelItem => item.Product)</td>
+                    <td>
+                        <img src="@Html.DisplayFor(modelItem => item.Picture)" alt="Image" width="100" />
+                    </td>
+                    <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                    <td>@Html.DisplayFor(modelItem => item.Price) lv.</td>
+                    <td>@Html.DisplayFor(modelItem => item.Discount) %</td>
+                    <td>@Html.DisplayFor(modelItem => item.TotalPrice) lv.</td>
+                </tr>
+            }
+
+            <tr>
+                <td colspan="8">
+                    <hr />
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

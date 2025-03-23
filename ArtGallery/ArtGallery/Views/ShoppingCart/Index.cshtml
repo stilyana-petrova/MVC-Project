@@ -1,0 +1,109 @@
+﻿@model List<ArtGallery.Models.ShoppingCart.ShoppingCartIndexVM>
+<link rel="stylesheet" href="~/css/ShoppingCart.css" asp-append-version="true" />
+
+@{
+    // Calculate the initial total price
+    decimal initialTotal = Model.Sum(item => item.Total);
+}
+
+@if (Model.Count == 0)
+{
+    <div class="empty-cart">
+        <h3>Your shopping cart is empty!</h3>
+        <p>Go add some products!</p>
+        <a asp-action="Index" asp-controller="Product" class="continue-shopping-btn btn">Continue Shopping</a>
+    </div>
+}
+else
+{
+    <div class="shopping-cart">
+        <h2 class="my-4">Shopping Cart</h2>
+        <table class="table table-warning my-5">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Discount</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ProductName </td>
+                        
+                        <td>
+                            <input type="hidden" name="cartItemId" value="@item.Id" />
+                            <input type="number" name="quantity" value="@item.Quantity" min="1" max="@item.QuantityInStock" onchange="updateQuantity(this)" />
+                        </td>
+                        <td class="price">@item.Price lv.</td>
+                        <td class="discount">@item.Discount %</td>
+                        <td class="subtotal">@item.Total.ToString("F2") lv.</td>
+                        <td>
+                            <form asp-action="RemoveFromCart" asp-controller="ShoppingCart" method="post">
+                                <input type="hidden" name="cartItemId" value="@item.Id" />
+                                <button type="submit" class="btn">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="text-right">
+            <h4 class="my-3">Total: <span id="total">@initialTotal.ToString("F2")</span> lv.</h4>
+            <a href="@Url.Action("Index", "Checkout")" class="btn btn-dark">Order</a>
+            <a asp-action="Index" asp-controller="Product" class="btn btn-warning">Continue Shopping</a>
+        </div>
+    </div>
+}
+
+
+
+@section Scripts {
+    <script>
+        // Function to update the quantity of products
+        function updateQuantity(input) {
+            var quantity = parseInt(input.value);
+            var maxQuantity = parseInt(input.getAttribute('max'));
+            var cartItemId = parseInt(input.closest('tr').querySelector('[name="cartItemId"]').value);
+
+            if (quantity < 1 || quantity > maxQuantity) {
+                input.value = input.defaultValue;
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("UpdateCart", "ShoppingCart")',
+                type: 'POST',
+                data: { cartItemId: cartItemId, quantity: quantity },
+                success: function () {
+                    var price = parseFloat(input.closest('tr').querySelector('.price').innerText);
+                    var discount = parseFloat(input.closest('tr').querySelector('.discount').innerText);
+                    var subtotal = quantity * price - quantity * price * discount / 100;
+                    input.closest('tr').querySelector('.subtotal').innerText = subtotal.toFixed(2); // Round to 2 decimal places
+
+                    updateTotal(); // Call updateTotal function after updating subtotal
+                },
+                error: function (xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
+
+        // Function to update the total price
+        function updateTotal() {
+            var total = 0;
+            document.querySelectorAll('.subtotal').forEach(function (subtotal) {
+                total += parseFloat(subtotal.innerText);
+            });
+            document.getElementById('total').innerText = total.toFixed(2); // Update total price
+        }
+    </script>
+}
